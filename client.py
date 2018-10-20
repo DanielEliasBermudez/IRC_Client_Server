@@ -8,5 +8,5 @@ PORT = 8080
 sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
 sock.connect((HOST, PORT))
 message = sock.recv(4096)
-print(str(message))
+print(message.decode('utf-8'))
 sock.close()
