@@ -30,7 +30,7 @@ def parsePart(partParser):
 def parseQuit(quitParser):
     addOptionalArg(quitParser, 'message')
 
-# General arguments to add arguments to a parser
+# General functions to add arguments to a parser
 def addRequiredArg(commandParser, arg):
     commandParser.add_argument(arg)
 
