@@ -26,6 +26,9 @@ def parsePart(partParser):
     addRequiredArg(partParser, 'channels')
     addOptionalArg(partParser, 'message')
 
+def parseQuit(quitParser):
+    addOptionalArg(quitParser, 'message')
+
 def addRequiredArg(commandParser, arg):
     commandParser.add_argument(arg)
 
@@ -36,6 +39,7 @@ ircCommands = {
     'JOIN': parseJoin,
     'LIST': parseList,
     'PART': parsePart,
+    'QUIT': parseQuit,
 }
 
 if len(sys.argv) > 1:
