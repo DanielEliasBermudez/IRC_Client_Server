@@ -14,6 +14,7 @@ Good news is argparse can be fed a list in place of sys.argv, so we could use it
 client or server process.
 """
 
+# Functions to set up parsers for specific IRC commands
 def parseJoin(joinParser):
     addRequiredArg(joinParser, 'channels')
     addOptionalArg(joinParser, 'keys')
@@ -29,6 +30,7 @@ def parsePart(partParser):
 def parseQuit(quitParser):
     addOptionalArg(quitParser, 'message')
 
+# General arguments to add arguments to a parser
 def addRequiredArg(commandParser, arg):
     commandParser.add_argument(arg)
 
