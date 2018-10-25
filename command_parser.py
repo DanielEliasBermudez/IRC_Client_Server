@@ -1,6 +1,7 @@
 #!usr/bin/env python3
 
 import argparse
+import sys
 
 """
 Initial (very early) proof of concept for command parser. Not sure if this is the best route.
@@ -14,19 +15,16 @@ client or server process.
 """
 
 def parseJoin(joinParser):
-    joinParser.add_argument('command', nargs=1, type=str, help='the join command')
-    joinParser.add_argument('channels', nargs=1, type=str, help='comma-separated list of channels to join')
-    joinParser.add_argument('keys', nargs='?', help='optional keys to channels in "channels"')
-    args = joinParser.parse_args()
-    print('you parsed JOIN! here are its args: {}'.format(args))
+    joinParser.add_argument('channels', nargs=1, help='comma-separated list of channels to join')
+    joinParser.add_argument('--keys', nargs='?', help='optional keys to channels in "channels"')
 
 def parseList(listParser):
-    print('you parsed LIST! here are its args: {}'.format(args))
-    # ... and then we parse the args for LIST
+    listParser.add_argument('--channels', nargs='?', help='optional comma-separated list of channels to list')
+    listParser.add_argument('--server', nargs='?', help='optional server to forward command to')
 
 def parsePart(partParser):
-    print('you parsed PART! here are its args: {}'.format(args))
-    # ... and then we parse the args for PART
+    partParser.add_argument('channels', nargs=1, help='comma-separated list of channels to join')
+    partParser.add_argument('--message', nargs='?', help='optional message')
 
 ircCommands = {
     'JOIN': parseJoin,
@@ -34,16 +32,18 @@ ircCommands = {
     'PART': parsePart,
 }
 
-parser = argparse.ArgumentParser(description='parse IRC command')
-parser.add_argument('command', help='a supported IRC command')
-parser.add_argument('arguments', nargs='*', help='arguments to the IRC command specified by "command"')
-args = parser.parse_args()
-
-command = ircCommands.get(args.command)
-
-if command:
-    subparsers = parser.add_subparsers()
-    commandParser = subparsers.add_parser(args.command)
-    ircCommands[args.command](commandParser)
+if len(sys.argv) > 1:
+    commandArg = sys.argv[1]
 else:
-    parser.print_help()
+    print('no arguments received')
+    exit()
+
+command = ircCommands.get(commandArg)
+if command:
+    parser = argparse.ArgumentParser(description='parse IRC command')
+    parser.add_argument('command', help='a supported IRC command')
+    command(parser)
+    args = parser.parse_args()
+    print('you parsed {}! here are its args: {}'.format(commandArg, args))
+else:
+    print('command not supported: {}'.format(commandArg))
