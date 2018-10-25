@@ -15,16 +15,22 @@ client or server process.
 """
 
 def parseJoin(joinParser):
-    joinParser.add_argument('channels', nargs=1, help='comma-separated list of channels to join')
-    joinParser.add_argument('--keys', nargs='?', help='optional keys to channels in "channels"')
+    addRequiredArg(joinParser, 'channels')
+    addOptionalArg(joinParser, 'keys')
 
 def parseList(listParser):
-    listParser.add_argument('--channels', nargs='?', help='optional comma-separated list of channels to list')
-    listParser.add_argument('--server', nargs='?', help='optional server to forward command to')
+    addOptionalArg(listParser, 'channels')
+    addOptionalArg(listParser, 'server')
 
 def parsePart(partParser):
-    partParser.add_argument('channels', nargs=1, help='comma-separated list of channels to join')
-    partParser.add_argument('--message', nargs='?', help='optional message')
+    addRequiredArg(partParser, 'channels')
+    addOptionalArg(partParser, 'message')
+
+def addRequiredArg(commandParser, arg):
+    commandParser.add_argument(arg)
+
+def addOptionalArg(commandParser, arg):
+    commandParser.add_argument('--' + arg)
 
 ircCommands = {
     'JOIN': parseJoin,
