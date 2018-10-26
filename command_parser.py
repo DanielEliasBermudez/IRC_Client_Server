@@ -30,6 +30,9 @@ def parsePart(partParser):
 def parseQuit(quitParser):
     addOptionalArg(quitParser, 'message')
 
+def parseNames(namesParser):
+    addOptionalArg(namesParser, 'channels')
+
 # General functions to add arguments to a parser
 def addRequiredArg(commandParser, arg):
     commandParser.add_argument(arg)
@@ -42,6 +45,7 @@ ircCommands = {
     'LIST': parseList,
     'PART': parsePart,
     'QUIT': parseQuit,
+    'NAMES': parseNames,
 }
 
 def parseCommand(argv):
@@ -62,3 +66,6 @@ def parseCommand(argv):
         print('command not supported: {}'.format(commandArg))
         return None
     return args
+
+if __name__ == "__main__":
+    parseCommand(sys.argv)
