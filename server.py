@@ -19,16 +19,22 @@ def handle_message(msg):
     command key.
     """
     command = msg["command"]
+    user = msg["nick"]
+
     if command == "user":
         handle_user_cmd(msg)
-    if command == "join":
-        room = msg["room"]
-        if room in list_of_rooms:
-            handle_join_cmd(msg)
-        else:
-            handle_create_cmd(msg)
-    # if command == "list":
-    #     # handle list call
+    if verify_user(user):
+        if command == "join":
+            room = msg["room"]
+            if room in list_of_rooms:
+                handle_join_cmd(msg)
+            else:
+                handle_create_cmd(msg)
+        # elif command == "list":
+        #     # handle list call
+    else:
+        # TODO add exception for unknown user?
+        print("Unknown user")
 
 
 def handle_user_cmd(msg):
@@ -69,9 +75,10 @@ def handle_join_cmd(msg):
     pass
 
 
-# TODO finish
 def verify_user(user):
-    pass
+    if user in list_of_users:
+        return True
+    return False
 
 
 # This will create listening connection TCP socket on localhost:8080
