@@ -16,56 +16,65 @@ client or server process.
 
 # Functions to set up parsers for specific IRC commands
 def parseJoin(joinParser):
-    addRequiredArg(joinParser, 'channels')
-    addOptionalArg(joinParser, 'keys')
+    addRequiredArg(joinParser, "rooms")
+    addOptionalArg(joinParser, "keys")
+
 
 def parseList(listParser):
-    addOptionalArg(listParser, 'channels')
-    addOptionalArg(listParser, 'server')
+    addOptionalArg(listParser, "rooms")
+    addOptionalArg(listParser, "server")
+
 
 def parsePart(partParser):
-    addRequiredArg(partParser, 'channels')
-    addOptionalArg(partParser, 'message')
+    addRequiredArg(partParser, "rooms")
+    addOptionalArg(partParser, "message")
+
 
 def parseQuit(quitParser):
-    addOptionalArg(quitParser, 'message')
+    addOptionalArg(quitParser, "message")
+
 
 def parseNames(namesParser):
-    addOptionalArg(namesParser, 'channels')
+    addOptionalArg(namesParser, "rooms")
+
 
 # General functions to add arguments to a parser
 def addRequiredArg(commandParser, arg):
     commandParser.add_argument(arg)
 
+
 def addOptionalArg(commandParser, arg):
-    commandParser.add_argument('--' + arg)
+    commandParser.add_argument("--" + arg)
+
 
 ircCommands = {
-    'JOIN': parseJoin,
-    'LIST': parseList,
-    'PART': parsePart,
-    'QUIT': parseQuit,
-    'NAMES': parseNames,
+    "join": parseJoin,
+    "list": parseList,
+    "part": parsePart,
+    "quit": parseQuit,
+    "names": parseNames,
 }
+
 
 def parseCommand(argv):
     if len(argv) > 1:
         commandArg = argv[1]
     else:
-        print('no arguments received')
+        print("no arguments received")
         return None
 
     command = ircCommands.get(commandArg)
     if command:
-        parser = argparse.ArgumentParser(description='parse IRC command')
-        parser.add_argument('command', help='a supported IRC command')
+        parser = argparse.ArgumentParser(description="parse IRC command")
+        parser.add_argument("command", help="a supported IRC command")
         command(parser)
         args = parser.parse_args()
-        print('you parsed {}! here are its args: {}'.format(commandArg, args))
+        print("you parsed {}! here are its args: {}".format(commandArg, args))
     else:
-        print('command not supported: {}'.format(commandArg))
+        print("command not supported: {}".format(commandArg))
         return None
     return args
+
 
 if __name__ == "__main__":
     parseCommand(sys.argv)
