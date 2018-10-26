@@ -1,8 +1,8 @@
 #!usr/bin/env python3
 import socket
 import json
-import user
-import room
+from src import user
+from src import room
 
 test_user_dict = {"command": "user", "nick": "Alice", "real_name": "Alice A"}
 test_user_jobj = json.dumps(test_user_dict)
@@ -66,6 +66,11 @@ def handle_create_cmd(msg):
 
 # TODO update
 def handle_join_cmd(msg):
+    pass
+
+
+# TODO finish
+def verify_user(user):
     pass
 
 

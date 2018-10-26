@@ -1,10 +1,13 @@
 #!usr/bin/env python3
 import unittest
+import subprocess
 
 
 class TestServer(unittest.TestCase):
+    server_process = None
+
     # def setUp(self):
-    #     pass
+    # server_process = subprocess.Popen("~/python/IRC_Client_Server/src/server.py")
 
     def test_true(self):
         self.assertTrue(True)
