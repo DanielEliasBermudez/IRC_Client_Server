@@ -1,4 +1,4 @@
-from src import user
+import user
 
 
 class Room:

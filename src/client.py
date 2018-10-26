@@ -2,7 +2,7 @@
 
 import socket
 import sys
-from src import command_parser as parser
+import command_parser as parser
 import json
 
 HOST = "127.0.0.1"
