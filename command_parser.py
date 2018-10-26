@@ -44,18 +44,21 @@ ircCommands = {
     'QUIT': parseQuit,
 }
 
-if len(sys.argv) > 1:
-    commandArg = sys.argv[1]
-else:
-    print('no arguments received')
-    exit()
+def parseCommand(argv):
+    if len(argv) > 1:
+        commandArg = argv[1]
+    else:
+        print('no arguments received')
+        return None
 
-command = ircCommands.get(commandArg)
-if command:
-    parser = argparse.ArgumentParser(description='parse IRC command')
-    parser.add_argument('command', help='a supported IRC command')
-    command(parser)
-    args = parser.parse_args()
-    print('you parsed {}! here are its args: {}'.format(commandArg, args))
-else:
-    print('command not supported: {}'.format(commandArg))
+    command = ircCommands.get(commandArg)
+    if command:
+        parser = argparse.ArgumentParser(description='parse IRC command')
+        parser.add_argument('command', help='a supported IRC command')
+        command(parser)
+        args = parser.parse_args()
+        print('you parsed {}! here are its args: {}'.format(commandArg, args))
+    else:
+        print('command not supported: {}'.format(commandArg))
+        return None
+    return args
