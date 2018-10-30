@@ -7,12 +7,34 @@ import json
 
 HOST = "127.0.0.1"
 PORT = 8080
+NICK = "boris"
+
+
+def buildPacket(argsDict):
+    packetDict = {}
+    dataDict = {}
+    packetDict["nick"] = NICK
+    packetDict["command"] = argsDict.pop("command", None)
+    if not packetDict["command"]:
+        return -1
+    else:
+        for key in argsDict:
+            dataDict[key] = argsDict[key]
+        packetDict["data"] = argsDict
+        return json.dumps(packetDict)
+
 
 # parse commandline
 args = parser.parseCommand(sys.argv)
 if args:
     # convert argparse Namespace object to json string and send to server as byte array
-    json = json.dumps(vars(args))
+    # print('vars: {}'.format(vars(args)))
+    # json = json.dumps(vars(args))
+    json = buildPacket(vars(args))
+    print("json: {}".format(json))
+    if not json:
+        print("Error: could not serialize command")
+        exit()
     sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
     try:
         sock.connect((HOST, PORT))

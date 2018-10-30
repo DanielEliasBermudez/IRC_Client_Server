@@ -15,6 +15,11 @@ client or server process.
 """
 
 # Functions to set up parsers for specific IRC commands
+def parseUser(userParser):
+    addRequiredArg(userParser, "username")
+    addRequiredArg(userParser, "realname")
+
+
 def parseJoin(joinParser):
     addRequiredArg(joinParser, "rooms")
     addOptionalArg(joinParser, "keys")
@@ -53,6 +58,7 @@ ircCommands = {
     "part": parsePart,
     "quit": parseQuit,
     "names": parseNames,
+    "user": parseUser,
 }
 
 
