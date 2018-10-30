@@ -16,7 +16,7 @@ def buildPacket(argsDict):
     packetDict["nick"] = NICK
     packetDict["command"] = argsDict.pop("command", None)
     if not packetDict["command"]:
-        return -1
+        return None 
     else:
         for key in argsDict:
             dataDict[key] = argsDict[key]
