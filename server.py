@@ -6,8 +6,13 @@ import room
 
 test_user_dict = {"command": "user", "nick": "Alice", "real_name": "Alice A"}
 test_user_jobj = json.dumps(test_user_dict)
-test_join_dict = {"command": "join", "nick": "Alice", "room": "test_room"}
+test_join_dict = {"command": "join", "nick": "Alice", "room": "room1"}
 test_join_jobj = json.dumps(test_join_dict)
+
+test_userb_dict = {"command": "user", "nick": "Boris", "real_name": "Boris P"}
+test_userb_jobj = json.dumps(test_userb_dict)
+test_joinb_dict = {"command": "join", "nick": "Boris", "room": "room1"}
+test_joinb_jobj = json.dumps(test_joinb_dict)
 
 list_of_users = []
 list_of_rooms = []
@@ -27,10 +32,16 @@ def handle_message(msg):
     elif verify_user(user):
         if command == "join":
             room = msg["room"]
-            if room in list_of_rooms:
-                handle_join_cmd(msg)
+            room_found = False
+            room_in_list = None
+            for room_in_list in list_of_rooms:
+                if room_in_list.get_name() == room:
+                    room_found = True
+                    break
+            if room_found:
+                response = handle_join_cmd(msg, room_in_list)
             else:
-                handle_create_cmd(msg)
+                response = handle_create_cmd(msg)
         # elif command == "list":
         #     # handle list call
     else:
@@ -59,7 +70,7 @@ def handle_user_cmd(msg):
 
     new_user = user.User(nick_name, msg["real_name"])
     list_of_users.append(new_user)
-    reply = "User {} joined the server".format(nick_name)
+    reply = "User {} joined the server.".format(nick_name)
     response_msg = {"command": "user", "nick": nick_name, "response": reply}
     # TODO remove
     # print("Command - User")
@@ -79,14 +90,20 @@ def handle_create_cmd(msg):
         "nick" : "name of user",
     }
     """
-    new_room = room.Room(msg["room"])
-    new_room.add_user(msg["nick"])
+    room_name = msg["room"]
+    nick_name = msg["nick"]
+    new_room = room.Room(room_name)
+    new_room.add_user(nick_name)
     list_of_rooms.append(new_room)
     print("Created a room")
-    # TODO build response
+    reply = "Room {} created.\nUser {} joined room {}.".format(
+        room_name, nick_name, room_name
+    )
+    response_msg = {"command": "join", "nick": nick_name, "response": reply}
+    return json.dumps(response_msg)
 
 
-def handle_join_cmd(msg):
+def handle_join_cmd(msg, room):
     """
     Adds a user to the exisiting room.
     User json object example:
@@ -96,7 +113,13 @@ def handle_join_cmd(msg):
         "nick" : "name of user",
     }
     """
-    list_of_rooms[msg["room"]].add_user(msg["nick"])
+    room_name = msg["room"]
+    nick_name = msg["nick"]
+    room.add_user(msg["nick"])
+    print("Joined existing room")
+    reply = "User {} joined room {}.".format(nick_name, room_name)
+    response_msg = {"command": "join", "nick": nick_name, "response": reply}
+    return json.dumps(response_msg)
 
 
 def verify_user(user_nick):
@@ -127,7 +150,12 @@ def main():
             msg_json = json.loads(test_user_jobj)
             response = handle_message(msg_json)
             msg_json = json.loads(test_join_jobj)
-            handle_message(msg_json)
+            response = handle_message(msg_json)
+
+            msg_json = json.loads(test_userb_jobj)
+            response = handle_message(msg_json)
+            msg_json = json.loads(test_joinb_jobj)
+            response = handle_message(msg_json)
             conn.send(response.encode("utf-8"))
             # conn.send(b"You made a connection. yay!")
 
