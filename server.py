@@ -14,6 +14,9 @@ test_userb_jobj = json.dumps(test_userb_dict)
 test_joinb_dict = {"command": "join", "nick": "Boris", "room": "room1"}
 test_joinb_jobj = json.dumps(test_joinb_dict)
 
+test_list_dict = {"command": "list", "nick": "Alice"}
+test_list_jobj = json.dumps(test_list_dict)
+
 list_of_users = []
 list_of_rooms = []
 
@@ -24,12 +27,12 @@ def handle_message(msg):
     command key.
     """
     command = msg["command"]
-    user = msg["nick"]
+    nick_name = msg["nick"]
     response = ""
 
     if command == "user":
         response = handle_user_cmd(msg)
-    elif verify_user(user):
+    elif verify_user(nick_name):
         if command == "join":
             room = msg["room"]
             room_found = False
@@ -42,12 +45,12 @@ def handle_message(msg):
                 response = handle_join_cmd(msg, room_in_list)
             else:
                 response = handle_create_cmd(msg)
-        # elif command == "list":
-        #     # handle list call
+        elif command == "list":
+            response = handle_list_cmd(msg)
     else:
-        # TODO add exception for unknown user?
-        # TODO add "NOT OK" response
-        print("Unknown user {}".format(user))
+        print("Unknown user {}".format(nick_name))
+        reply = "NOT OK - User {} unknown".format(nick_name)
+        response = build_json_response(command, nick_name, reply)
     return response
 
 
@@ -61,23 +64,21 @@ def handle_user_cmd(msg):
         "real_name" : "real name of user",
     }
     """
+    command = msg["command"]
     nick_name = msg["nick"]
-    # verify that user nick is not already in use
     if verify_user(nick_name):
         reply = "NOT OK - User {} already on the server".format(nick_name)
-        response_msg = {"command": "user", "nick": nick_name, "response": reply}
-        return json.dumps(response_msg)
+        return build_json_response(command, nick_name, reply)
 
     new_user = user.User(nick_name, msg["real_name"])
     list_of_users.append(new_user)
     reply = "User {} joined the server.".format(nick_name)
-    response_msg = {"command": "user", "nick": nick_name, "response": reply}
     # TODO remove
     # print("Command - User")
     # print("Nick: {}".format(msg["nick"]))
     # print("Real Name: {}".format(msg["real_name"]))
     print("User added")
-    return json.dumps(response_msg)
+    return build_json_response(command, nick_name, reply)
 
 
 def handle_create_cmd(msg):
@@ -90,6 +91,7 @@ def handle_create_cmd(msg):
         "nick" : "name of user",
     }
     """
+    command = msg["command"]
     room_name = msg["room"]
     nick_name = msg["nick"]
     new_room = room.Room(room_name)
@@ -99,8 +101,9 @@ def handle_create_cmd(msg):
     reply = "Room {} created.\nUser {} joined room {}.".format(
         room_name, nick_name, room_name
     )
-    response_msg = {"command": "join", "nick": nick_name, "response": reply}
-    return json.dumps(response_msg)
+    # response_msg = {"command": "join", "nick": nick_name, "response": reply}
+    # return json.dumps(response_msg)
+    return build_json_response(command, nick_name, reply)
 
 
 def handle_join_cmd(msg, room):
@@ -113,20 +116,49 @@ def handle_join_cmd(msg, room):
         "nick" : "name of user",
     }
     """
+    command = msg["command"]
     room_name = msg["room"]
     nick_name = msg["nick"]
-    room.add_user(msg["nick"])
+    room.add_user(nick_name)
     print("Joined existing room")
     reply = "User {} joined room {}.".format(nick_name, room_name)
-    response_msg = {"command": "join", "nick": nick_name, "response": reply}
-    return json.dumps(response_msg)
+    # response_msg = {"command": "join", "nick": nick_name, "response": reply}
+    # return json.dumps(response_msg)
+    return build_json_response(command, nick_name, reply)
+
+
+def handle_list_cmd(msg):
+    """
+    List all rooms on the server
+    {
+        "command" : "list",
+        "nick" : "name of user"
+    }
+    """
+    room_names = []
+    for r in list_of_rooms:
+        room_names.append(r.get_name())
+    print("Listing rooms")
+    # response_msg = {"command": "list", "nick": msg["nick"], "response": room_names}
+    # return json.dumps(response_msg)
+    return build_json_response(msg["command"], msg["nick"], room_names)
 
 
 def verify_user(user_nick):
+    """
+    Return True if the user is already on the server
+    """
     for user in list_of_users:
         if user.get_nick() == user_nick:
             return True
     return False
+
+
+def build_json_response(command, nick, reply):
+    """
+    Build up the response json object
+    """
+    return json.dumps({"command": command, "nick": nick, "response": reply})
 
 
 # This will create listening connection TCP socket on localhost:8080
@@ -147,15 +179,23 @@ def main():
             print(data.decode("utf-8"))
             # parse the json here - this should be the json that came thru the data. for
             # now I am just using a test json object
+
+            # test user command
             msg_json = json.loads(test_user_jobj)
             response = handle_message(msg_json)
+            # test create command
             msg_json = json.loads(test_join_jobj)
             response = handle_message(msg_json)
-
+            # test 2nd user
             msg_json = json.loads(test_userb_jobj)
             response = handle_message(msg_json)
+            # test join command
             msg_json = json.loads(test_joinb_jobj)
             response = handle_message(msg_json)
+            # test list command
+            msg_json = json.loads(test_list_jobj)
+            response = handle_message(msg_json)
+
             conn.send(response.encode("utf-8"))
             # conn.send(b"You made a connection. yay!")
 
