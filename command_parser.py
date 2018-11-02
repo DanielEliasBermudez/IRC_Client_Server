@@ -2,6 +2,7 @@
 
 import argparse
 import sys
+import re
 
 """
 Initial (very early) proof of concept for command parser. Not sure if this is the best route.
@@ -13,44 +14,40 @@ I'll have to look into that further...
 Good news is argparse can be fed a list in place of sys.argv, so we could use it to parse commands inside a running
 client or server process.
 """
+# this works but i can't get argparse to tolerate spaces... gonna look into it more tommorow
+def realNameType(arg, pattern=re.compile(r":[A-Za-z0-9]+\s*[A-Za-z0-9]")):
+    if not pattern.match(arg):
+        raise argparse.ArgumentTypeError
+    return arg
+
+# Doesn't work yet
+#def roomType(arg, pattern=re.compile(r"#[A-Za-z0-9]+")):
+#    if not pattern.match(arg):
+#        raise argparse.ArgumentTypeError
+#    return arg
 
 # Functions to set up parsers for specific IRC commands
 def parseUser(userParser):
-    addRequiredArg(userParser, "username")
-    addRequiredArg(userParser, "realname")
+    userParser.add_argument("nick")
+    userParser.add_argument("realname", type=realNameType)
 
 
 def parseJoin(joinParser):
-    addRequiredArg(joinParser, "rooms")
-    addOptionalArg(joinParser, "keys")
-
+    joinParser.add_argument("rooms")
 
 def parseList(listParser):
-    addOptionalArg(listParser, "rooms")
-    addOptionalArg(listParser, "server")
-
+    listParser.add_argument("--rooms")
+    listParser.add_argument("--server")
 
 def parsePart(partParser):
-    addRequiredArg(partParser, "rooms")
-    addOptionalArg(partParser, "message")
-
+    partParser.add_argument("rooms")
+    partParser.add_argument("message")
 
 def parseQuit(quitParser):
-    addOptionalArg(quitParser, "message")
-
+    quitParser.add_argument("message")
 
 def parseNames(namesParser):
-    addOptionalArg(namesParser, "rooms")
-
-
-# General functions to add arguments to a parser
-def addRequiredArg(commandParser, arg):
-    commandParser.add_argument(arg)
-
-
-def addOptionalArg(commandParser, arg):
-    commandParser.add_argument("--" + arg)
-
+    namesParser.add_argument("--rooms")
 
 ircCommands = {
     "join": parseJoin,
@@ -60,7 +57,6 @@ ircCommands = {
     "names": parseNames,
     "user": parseUser,
 }
-
 
 def parseCommand(argv):
     if len(argv) > 1:

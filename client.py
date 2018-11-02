@@ -9,27 +9,17 @@ HOST = "127.0.0.1"
 PORT = 8080
 NICK = "boris"
 
-
 def buildPacket(argsDict):
-    packetDict = {}
-    dataDict = {}
-    packetDict["nick"] = NICK
-    packetDict["command"] = argsDict.pop("command", None)
-    if not packetDict["command"]:
-        return None 
+    argsDict["nick"] = NICK
+    command = argsDict.get("command")
+    if not command:
+        return None
     else:
-        for key in argsDict:
-            dataDict[key] = argsDict[key]
-        packetDict["data"] = argsDict
-        return json.dumps(packetDict)
-
+        return json.dumps(argsDict)
 
 # parse commandline
 args = parser.parseCommand(sys.argv)
 if args:
-    # convert argparse Namespace object to json string and send to server as byte array
-    # print('vars: {}'.format(vars(args)))
-    # json = json.dumps(vars(args))
     json = buildPacket(vars(args))
     print("json: {}".format(json))
     if not json:
