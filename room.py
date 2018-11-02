@@ -6,6 +6,9 @@ class Room:
         self.name = room_name
         self.list_of_users = []
 
+    def get_name(self):
+        return self.name
+
     def add_user(self, new_user):
         self.list_of_users.append(new_user)
 
