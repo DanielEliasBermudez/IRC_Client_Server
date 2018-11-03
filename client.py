@@ -10,9 +10,9 @@ PORT = 8080
 NICK = "boris"
 
 def buildPacket(argsDict):
-    argsDict["nick"] = NICK
+    nick = argsDict.get("nick")
     command = argsDict.get("command")
-    if not command:
+    if not command or not nick:
         return None
     else:
         return json.dumps(argsDict)
