@@ -107,8 +107,6 @@ def handle_create_cmd(msg):
     reply = "Room {} created.\nUser {} joined room {}.".format(
         room_name, nick_name, room_name
     )
-    # response_msg = {"command": "join", "nick": nick_name, "response": reply}
-    # return json.dumps(response_msg)
     return build_json_response(command, nick_name, reply)
 
 
@@ -128,8 +126,6 @@ def handle_join_cmd(msg, room):
     room.add_user(nick_name)
     print("Joined existing room")
     reply = "User {} joined room {}.".format(nick_name, room_name)
-    # response_msg = {"command": "join", "nick": nick_name, "response": reply}
-    # return json.dumps(response_msg)
     return build_json_response(command, nick_name, reply)
 
 
@@ -145,8 +141,6 @@ def handle_list_cmd(msg):
     for r in list_of_rooms:
         room_names.append(r.get_name())
     print("Listing rooms")
-    # response_msg = {"command": "list", "nick": msg["nick"], "response": room_names}
-    # return json.dumps(response_msg)
     return build_json_response(msg["command"], msg["nick"], room_names)
 
 
@@ -258,6 +252,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# conn.send(b"You made a connection. yay!")
-# sock.close()
