@@ -12,6 +12,9 @@ class Room:
     def add_user(self, new_user):
         self.list_of_users.append(new_user)
 
+    def delete_user(self, user):
+        self.list_of_users.remove(user)
+
     def list_users(self):
         for user in self.list_of_users:
             print(user)
