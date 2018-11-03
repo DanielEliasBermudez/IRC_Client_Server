@@ -20,8 +20,9 @@ def realNameType(arg, pattern=re.compile(r":[A-Za-z0-9]+\s*[A-Za-z0-9]")):
         raise argparse.ArgumentTypeError
     return arg
 
+
 # Doesn't work yet
-#def roomType(arg, pattern=re.compile(r"#[A-Za-z0-9]+")):
+# def roomType(arg, pattern=re.compile(r"#[A-Za-z0-9]+")):
 #    if not pattern.match(arg):
 #        raise argparse.ArgumentTypeError
 #    return arg
@@ -33,21 +34,26 @@ def parseUser(userParser):
 
 
 def parseJoin(joinParser):
-    joinParser.add_argument("rooms")
+    joinParser.add_argument("room")
+
 
 def parseList(listParser):
     listParser.add_argument("--rooms")
     listParser.add_argument("--server")
 
+
 def parsePart(partParser):
     partParser.add_argument("rooms")
     partParser.add_argument("message")
 
+
 def parseQuit(quitParser):
     quitParser.add_argument("message")
 
+
 def parseNames(namesParser):
     namesParser.add_argument("--rooms")
+
 
 ircCommands = {
     "join": parseJoin,
@@ -58,9 +64,10 @@ ircCommands = {
     "user": parseUser,
 }
 
+
 def parseCommand(argv):
-    if len(argv) > 1:
-        commandArg = argv[1]
+    if len(argv) > 0:
+        commandArg = argv[0]
     else:
         print("no arguments received")
         return None
@@ -70,8 +77,8 @@ def parseCommand(argv):
         parser = argparse.ArgumentParser(description="parse IRC command")
         parser.add_argument("command", help="a supported IRC command")
         command(parser)
-        args = parser.parse_args()
-        print("you parsed {}! here are its args: {}".format(commandArg, args))
+        args = parser.parse_args(argv)
+    #        print("you parsed {}! here are its args: {}".format(commandArg, args))
     else:
         print("command not supported: {}".format(commandArg))
         return None
