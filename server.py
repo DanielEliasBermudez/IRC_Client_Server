@@ -13,12 +13,12 @@ list_of_users = []
 list_of_rooms = []
 
 # Test json objects
-# test_user_dict = {"command": "user", "nick": "Alice", "real_name": "Alice A"}
+# test_user_dict = {"command": "user", "nick": "Alice", "realname": "Alice A"}
 # test_user_jobj = json.dumps(test_user_dict)
 # test_join_dict = {"command": "join", "nick": "Alice", "room": "room1"}
 # test_join_jobj = json.dumps(test_join_dict)
 
-# test_userb_dict = {"command": "user", "nick": "Boris", "real_name": "Boris P"}
+# test_userb_dict = {"command": "user", "nick": "Boris", "realname": "Boris P"}
 # test_userb_jobj = json.dumps(test_userb_dict)
 # test_joinb_dict = {"command": "join", "nick": "Boris", "room": "room1"}
 # test_joinb_jobj = json.dumps(test_joinb_dict)
@@ -67,7 +67,7 @@ def handle_user_cmd(msg):
     {
         "command" : "user",
         "nick" : "name of user",
-        "real_name" : "real name of user",
+        "realname" : "real name of user",
     }
     """
     command = msg["command"]
@@ -76,13 +76,13 @@ def handle_user_cmd(msg):
         reply = "NOT OK - User {} already on the server".format(nick_name)
         return build_json_response(command, nick_name, reply)
 
-    new_user = user.User(nick_name, msg["real_name"])
+    new_user = user.User(nick_name, msg["realname"])
     list_of_users.append(new_user)
     reply = "User {} joined the server.".format(nick_name)
     # TODO remove
     # print("Command - User")
     # print("Nick: {}".format(msg["nick"]))
-    # print("Real Name: {}".format(msg["real_name"]))
+    # print("Real Name: {}".format(msg["realname"]))
     print("User added")
     return build_json_response(command, nick_name, reply)
 
