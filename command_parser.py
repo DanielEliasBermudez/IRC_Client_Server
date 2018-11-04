@@ -33,7 +33,10 @@ def parseUser(userParser, argv):
     userParser.add_argument("nick")
     userParser.add_argument("realname", type=realNameType)
     userParser.add_argument("lastname", nargs="?")
-    args = userParser.parse_args(argv)
+    try:
+        args = userParser.parse_args(argv)
+    except:
+        return None
     args.realname += " " + args.lastname
     del args.lastname
     return args
@@ -41,31 +44,46 @@ def parseUser(userParser, argv):
 
 def parseJoin(joinParser, argv):
     joinParser.add_argument("room", type=roomType)
-    return joinParser.parse_args(argv)
+    try:
+        return joinParser.parse_args(argv)
+    except:
+        return None
 
 
 def parseList(listParser, argv):
     listParser.add_argument("--rooms")
     listParser.add_argument("--server")
-    return listParser.parse_args(argv)
+    try:
+        return listParser.parse_args(argv)
+    except:
+        return None
 
 
 def parsePart(partParser, argv):
     partParser.add_argument("rooms")
     partParser.add_argument("message", nargs="*")
-    args = partParser.parse_args(argv)
+    try:
+        args = partParser.parse_args(argv)
+    except:
+        return None
     args.message = " ".join(args.message)
     return args
 
 
 def parseQuit(quitParser, argv):
     quitParser.add_argument("message")
-    return quitParser.parse_args(argv)
+    try:
+        return quitParser.parse_args(argv)
+    except:
+        return None
 
 
 def parseNames(namesParser, argv):
     namesParser.add_argument("--rooms")
-    return namesParser.parse_args(argv)
+    try:
+        return namesParser.parse_args(argv)
+    except:
+        return None
 
 
 ircCommands = {
@@ -90,6 +108,7 @@ def parseCommand(argv):
         parser = argparse.ArgumentParser(description="parse IRC command")
         parser.add_argument("command", help="a supported IRC command")
         args = command(parser, argv)
+        parser.parse_args
     else:
         print("command not supported: {}".format(commandArg))
         return None
