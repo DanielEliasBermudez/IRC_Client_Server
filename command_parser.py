@@ -14,27 +14,29 @@ I'll have to look into that further...
 Good news is argparse can be fed a list in place of sys.argv, so we could use it to parse commands inside a running
 client or server process.
 """
-# this works but i can't get argparse to tolerate spaces... gonna look into it more tommorow
+# defines a realname: a string beginning with ':', can include a space (for first name and last name)
 def realNameType(arg, pattern=re.compile(r":[A-Za-z0-9]+\s*[A-Za-z0-9]")):
     if not pattern.match(arg):
         raise argparse.ArgumentTypeError
     return arg
 
 
-# Doesn't work yet
-# def roomType(arg, pattern=re.compile(r"#[A-Za-z0-9]+")):
-#    if not pattern.match(arg):
-#        raise argparse.ArgumentTypeError
-#    return arg
+# defines a room: a string beginning with '#'
+def roomType(arg, pattern=re.compile(r"#[A-Za-z0-9]+")):
+    if not pattern.match(arg):
+        raise argparse.ArgumentTypeError
+    return arg
+
 
 # Functions to set up parsers for specific IRC commands
 def parseUser(userParser):
     userParser.add_argument("nick")
     userParser.add_argument("realname", type=realNameType)
+    userParser.add_argument("lastname", nargs="?")
 
 
 def parseJoin(joinParser):
-    joinParser.add_argument("room")
+    joinParser.add_argument("room", type=roomType)
 
 
 def parseList(listParser):
@@ -78,7 +80,12 @@ def parseCommand(argv):
         parser.add_argument("command", help="a supported IRC command")
         command(parser)
         args = parser.parse_args(argv)
-    #        print("you parsed {}! here are its args: {}".format(commandArg, args))
+        if command == parseUser and args.lastname:
+            args.realname += " " + args.lastname
+        try:
+            del args.lastname
+        except AttributeError:
+            pass
     else:
         print("command not supported: {}".format(commandArg))
         return None
@@ -86,4 +93,5 @@ def parseCommand(argv):
 
 
 if __name__ == "__main__":
-    parseCommand(sys.argv)
+    args = parseCommand(sys.argv[1:])
+    print(args)
