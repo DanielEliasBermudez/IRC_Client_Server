@@ -31,16 +31,20 @@ while True:
     if args:
         jsonString = buildPacket(vars(args))
         if not jsonString:
-            print("Error: could not serialize command")
-            exit()
+            print("Error: no username set. Please run 'user' command first")
+            continue
         sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
         try:
             sock.connect((HOST, PORT))
         except ConnectionRefusedError:
             print("Error: could not connect to server")
-            exit()
+            continue
         sock.send(jsonString.encode("utf-8"))
         message = sock.recv(4096)
         responseDict = json.loads(message)
-        print(responseDict["response"])
+        response = responseDict.get("response")
+        if not response:
+            print("Error: received empty response from server")
+        else:
+            print(response)
         sock.close()
