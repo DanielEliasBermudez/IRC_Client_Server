@@ -12,12 +12,12 @@ userDict = {"nick": None}
 
 
 def buildPacket(argsDict):
-    if userDict["nick"] == None:
+    command = argsDict.get("command")
+    if userDict["nick"] == None or command == 'user':
         nick = argsDict.get("nick")
         userDict["nick"] = nick
     nick = userDict["nick"]
     argsDict["nick"] = nick
-    command = argsDict.get("command")
     if not command or not nick:
         return None
     else:
@@ -34,13 +34,18 @@ while True:
             print("Error: no username set. Please run 'user' command first")
             continue
         sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
+        sock.settimeout(5)
         try:
             sock.connect((HOST, PORT))
         except ConnectionRefusedError:
             print("Error: could not connect to server")
             continue
         sock.send(jsonString.encode("utf-8"))
-        message = sock.recv(4096)
+        try:
+            message = sock.recv(4096)
+        except socket.timeout:
+            print("Error: connection to server timed out")
+            exit()
         responseDict = json.loads(message)
         response = responseDict.get("response")
         if not response:
@@ -48,3 +53,5 @@ while True:
         else:
             print(response)
         sock.close()
+        if args.command == "quit":
+            exit()

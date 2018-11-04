@@ -72,12 +72,13 @@ def parsePart(partParser, argv):
 
 
 def parseQuit(quitParser, argv):
-    quitParser.add_argument("message")
+    quitParser.add_argument("message", nargs="*")
     try:
-        return quitParser.parse_args(argv)
+        args = quitParser.parse_args(argv)
     except:
         return None
-
+    args.message = " ".join(args.message)
+    return args
 
 def parseNames(namesParser, argv):
     namesParser.add_argument("--rooms")
