@@ -17,14 +17,14 @@ client or server process.
 # defines a realname: a string beginning with ':', can include a space (for first name and last name)
 def realNameType(arg, pattern=re.compile(r":[A-Za-z0-9]+\s*[A-Za-z0-9]")):
     if not pattern.match(arg):
-        raise argparse.ArgumentTypeError
+        raise argparse.ArgumentTypeError("realname must begin with ':'")
     return arg
 
 
 # defines a room: a string beginning with '#'
 def roomType(arg, pattern=re.compile(r"#[A-Za-z0-9]+")):
     if not pattern.match(arg):
-        raise argparse.ArgumentTypeError
+        raise argparse.ArgumentTypeError("room must begin with '#'")
     return arg
 
 
@@ -37,7 +37,8 @@ def parseUser(userParser, argv):
         args = userParser.parse_args(argv)
     except:
         return None
-    args.realname += " " + args.lastname
+    if args.lastname:
+        args.realname += " " + args.lastname
     del args.lastname
     return args
 
