@@ -39,20 +39,12 @@ def handle_message(msg):
     if command == "user":
         response = handle_user_cmd(msg)
     elif verify_user(nick_name):
-        if command == "join":
-            room = msg["room"]
-            room_found = False
-            room_in_list = None
-            for room_in_list in list_of_rooms:
-                if room_in_list.get_name() == room:
-                    room_found = True
-                    break
-            if room_found:
-                response = handle_join_cmd(msg, room_in_list)
-            else:
-                response = handle_create_cmd(msg)
+        if command == "join" or command == "create":
+            response = handle_join_cmd(msg)
         elif command == "list":
             response = handle_list_cmd(msg)
+        elif command == "part":
+            response = handle_part_cmd(msg)
     else:
         print("Unknown user {}".format(nick_name))
         reply = "NOT OK - User {} unknown".format(nick_name)
@@ -87,46 +79,47 @@ def handle_user_cmd(msg):
     return build_json_response(command, nick_name, reply)
 
 
-def handle_create_cmd(msg):
+def handle_join_cmd(msg):
     """
-    Creates a room when a user tries to join a room that does not exist.
+    Adds a user to a room. Creates the room if it does not already exist.
     User json object example:
     {
         "command" : "join",
-        "room" : "name of room"
+        "room" : "list of rooms"
         "nick" : "name of user",
     }
     """
     command = msg["command"]
-    room_name = msg["room"]
+    rooms = msg["room"]
     nick_name = msg["nick"]
-    new_room = room.Room(room_name)
-    new_room.add_user(nick_name)
-    list_of_rooms.append(new_room)
-    print("Created a room")
-    reply = "Room {} created.\nUser {} joined room {}.".format(
-        room_name, nick_name, room_name
-    )
-    return build_json_response(command, nick_name, reply)
+    # in the case of 1 room passed in, rooms needs to be converted from a string -> list
+    rooms = verify_rooms_are_in_a_list(rooms)
+    for r in rooms:
+        room_exists_value, room_obj = room_exists(r)
+        if room_exists_value:
+            # join room
+            room_obj.add_user(nick_name)
+            print("Joined existing room")
+            reply = "User {} joined room {}.".format(nick_name, r)
+            return build_json_response(command, nick_name, reply)
+        else:
+            # create room
+            new_room = room.Room(r)
+            new_room.add_user(nick_name)
+            list_of_rooms.append(new_room)
+            print("Created a room")
+            reply = "Room {} created.\nUser {} joined room {}.".format(r, nick_name, r)
+            return build_json_response(command, nick_name, reply)
 
 
-def handle_join_cmd(msg, room):
+def room_exists(room_name):
     """
-    Adds a user to the exisiting room.
-    User json object example:
-    {
-        "command" : "join",
-        "room" : "name of room"
-        "nick" : "name of user",
-    }
+    Return True if the room_name exists in the list of rooms on the server
     """
-    command = msg["command"]
-    room_name = msg["room"]
-    nick_name = msg["nick"]
-    room.add_user(nick_name)
-    print("Joined existing room")
-    reply = "User {} joined room {}.".format(nick_name, room_name)
-    return build_json_response(command, nick_name, reply)
+    for room in list_of_rooms:
+        if room.get_name() == room_name:
+            return (True, room)
+    return (False, None)
 
 
 def handle_list_cmd(msg):
@@ -144,6 +137,33 @@ def handle_list_cmd(msg):
     return build_json_response(msg["command"], msg["nick"], room_names)
 
 
+def handle_part_cmd(msg):
+    """
+    User removed from specified room
+    Part json object example:
+    {
+        "command" : "part",
+        "room" : "list of rooms"
+        "nick" : "name of user",
+    }
+    """
+    # TODO update to include message sending
+    command = msg["command"]
+    rooms = msg["rooms"]
+    nick_name = msg["nick"]
+    list_of_rooms_user_left = ""
+    rooms = verify_rooms_are_in_a_list(rooms)
+    for room in rooms:
+        room_exists_value, room_obj = room_exists(room)
+        if room_exists_value:
+            print("User leaving room")
+            room_obj.delete_user(nick_name)
+            list_of_rooms_user_left += room
+            list_of_rooms_user_left += ", "
+    reply = "User {} left room(s) {}.".format(nick_name, list_of_rooms_user_left[:-2])
+    return build_json_response(command, nick_name, reply)
+
+
 def verify_user(user_nick):
     """
     Return True if the user is already on the server
@@ -152,6 +172,15 @@ def verify_user(user_nick):
         if user.get_nick() == user_nick:
             return True
     return False
+
+
+def verify_rooms_are_in_a_list(rooms):
+    """
+    Ensure that the comma-separated room list is of type list
+    """
+    if type(rooms) is not list:
+        rooms = [rooms]
+    return rooms
 
 
 def build_json_response(command, nick, reply):
