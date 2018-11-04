@@ -29,32 +29,43 @@ def roomType(arg, pattern=re.compile(r"#[A-Za-z0-9]+")):
 
 
 # Functions to set up parsers for specific IRC commands
-def parseUser(userParser):
+def parseUser(userParser, argv):
     userParser.add_argument("nick")
     userParser.add_argument("realname", type=realNameType)
     userParser.add_argument("lastname", nargs="?")
+    args = userParser.parse_args(argv)
+    args.realname += " " + args.lastname
+    del args.lastname
+    return args
 
 
-def parseJoin(joinParser):
+def parseJoin(joinParser, argv):
     joinParser.add_argument("room", type=roomType)
+    return joinParser.parse_args(argv)
 
 
-def parseList(listParser):
+def parseList(listParser, argv):
     listParser.add_argument("--rooms")
     listParser.add_argument("--server")
+    return listParser.parse_args(argv)
 
 
-def parsePart(partParser):
+def parsePart(partParser, argv):
     partParser.add_argument("rooms")
-    partParser.add_argument("message")
+    partParser.add_argument("message", nargs="*")
+    args = partParser.parse_args(argv)
+    args.message = " ".join(args.message)
+    return args
 
 
-def parseQuit(quitParser):
+def parseQuit(quitParser, argv):
     quitParser.add_argument("message")
+    return quitParser.parse_args(argv)
 
 
-def parseNames(namesParser):
+def parseNames(namesParser, argv):
     namesParser.add_argument("--rooms")
+    return namesParser.parse_args(argv)
 
 
 ircCommands = {
@@ -78,14 +89,7 @@ def parseCommand(argv):
     if command:
         parser = argparse.ArgumentParser(description="parse IRC command")
         parser.add_argument("command", help="a supported IRC command")
-        command(parser)
-        args = parser.parse_args(argv)
-        if command == parseUser and args.lastname:
-            args.realname += " " + args.lastname
-        try:
-            del args.lastname
-        except AttributeError:
-            pass
+        args = command(parser, argv)
     else:
         print("command not supported: {}".format(commandArg))
         return None
