@@ -80,12 +80,24 @@ def parseQuit(quitParser, argv):
     args.message = " ".join(args.message)
     return args
 
+
 def parseNames(namesParser, argv):
-    namesParser.add_argument("--rooms")
+    namesParser.add_argument("rooms", nargs="?")
     try:
         return namesParser.parse_args(argv)
     except:
         return None
+
+
+def parsePrivmsg(privmsgParser, argv):
+    privmsgParser.add_argument("msgtarget")
+    privmsgParser.add_argument("message", nargs="+")
+    try:
+        args = privmsgParser.parse_args(argv)
+    except:
+        return None
+    args.message = " ".join(args.message)
+    return args
 
 
 ircCommands = {
@@ -95,10 +107,15 @@ ircCommands = {
     "quit": parseQuit,
     "names": parseNames,
     "user": parseUser,
+    "privmsg": parsePrivmsg,
 }
 
 
 def parseCommand(argv):
+    """
+        parse commands according to the commandArg passed in. commandArg must be a supported IRC command in ircCommands dict
+    """
+
     if len(argv) > 0:
         commandArg = argv[0]
     else:
