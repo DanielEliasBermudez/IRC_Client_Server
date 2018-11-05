@@ -113,7 +113,8 @@ ircCommands = {
 
 def parseCommand(argv):
     """
-        parse commands according to the commandArg passed in. commandArg must be a supported IRC command in ircCommands dict
+        parse commands according to the commandArg passed in.
+        commandArg must be a supported IRC command in ircCommands dict.
     """
 
     if len(argv) > 0:
