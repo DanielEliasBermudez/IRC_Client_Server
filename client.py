@@ -4,6 +4,7 @@ import socket
 import sys
 import command_parser as parser
 import json
+import select
 
 HOST = "127.0.0.1"
 PORT = 8080
@@ -13,7 +14,7 @@ userDict = {"nick": None}
 
 def buildPacket(argsDict):
     command = argsDict.get("command")
-    if userDict["nick"] == None or command == 'user':
+    if userDict["nick"] == None or command == "user":
         nick = argsDict.get("nick")
         userDict["nick"] = nick
     nick = userDict["nick"]
@@ -24,6 +25,17 @@ def buildPacket(argsDict):
         return json.dumps(argsDict)
 
 
+def establishConn():
+    sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
+    sock.settimeout(5)
+    try:
+        sock.connect((HOST, PORT))
+    except ConnectionRefusedError:
+        print("Error: could not connect to server")
+    return sock
+
+
+sock = establishConn()
 while True:
     argv = input("> ")
     argv = argv.split()
@@ -33,14 +45,7 @@ while True:
         if not jsonString:
             print("Error: no username set. Please run 'user' command first")
             continue
-        sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
-        sock.settimeout(5)
-        try:
-            sock.connect((HOST, PORT))
-        except ConnectionRefusedError:
-            print("Error: could not connect to server")
-            continue
-        sock.send(jsonString.encode("utf-8"))
+        sock.sendall(jsonString.encode("utf-8"))
         try:
             message = sock.recv(4096)
         except socket.timeout:
@@ -52,6 +57,6 @@ while True:
             print("Error: received empty response from server")
         else:
             print(response)
-        sock.close()
+        # sock.close()
         if args.command == "quit":
             exit()
