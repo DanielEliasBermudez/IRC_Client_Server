@@ -182,17 +182,33 @@ def handle_privmsg_cmd(msg):
     nick_name = msg["nick"]
     target = msg["msgtarget"]
     message = msg["message"]
-    # target is a room
+    map_of_conns = sel.get_map()
+    reply = ""
+    # target is a list of rooms
     if target[0] == "#":
-        # TODO
-        pass
+        rooms = verify_rooms_are_in_a_list(target)
+        for room in rooms:
+            room_exists_value, room_obj = room_exists(room)
+            if room_exists_value:
+                room_occupants = room_obj.get_list_of_users()
+                for conn in map_of_conns.values():
+                    if (
+                        conn.data is not None
+                        and conn.data.user_nick in room_occupants
+                        and conn.data.user_nick is not nick_name
+                    ):
+                        conn.data.outbound += build_json_response(
+                            command, conn.data.user, message
+                        )
+                        print(message)
+        reply = "Message sent."
     else:
         # build a json for target
-        map_of_conns = sel.get_map()
         for conn in map_of_conns.values():
-            print(conn)
             if conn.data is not None and conn.data.user_nick == target:
-                conn.data.outbound = message
+                conn.data.outbound = build_json_response(
+                    command, conn.data.user, message
+                )
         reply = "Message sent."
     return build_json_response(command, nick_name, reply)
 
@@ -262,6 +278,7 @@ def service_connection(key, mask):
         #     data_socket.close()
     if mask & selectors.EVENT_WRITE:
         if data.outbound:
+            print(data.outbound)
             data_socket.send(data.outbound.encode("utf-8"))
             data.outbound = ""
 

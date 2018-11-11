@@ -19,6 +19,9 @@ class Room:
         for user in self.list_of_users:
             print(user)
 
+    def get_list_of_users(self):
+        return self.list_of_users
+
 
 def main():
     test_room = Room("test_room")
