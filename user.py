@@ -2,6 +2,7 @@ class User:
     def __init__(self, nick, real_name):
         self.nick = nick
         self.real_name = real_name
+        self.outbound = ""
 
     def get_nick(self):
         return self.nick

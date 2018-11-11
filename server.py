@@ -27,7 +27,7 @@ list_of_rooms = []
 # test_list_jobj = json.dumps(test_list_dict)
 
 
-def handle_message(msg):
+def handle_message(msg, data):
     """
     Will look at the message json object and choose the correct handler based on the 
     command key.
@@ -37,7 +37,7 @@ def handle_message(msg):
     response = ""
 
     if command == "user":
-        response = handle_user_cmd(msg)
+        response = handle_user_cmd(msg, data)
     elif verify_user(nick_name):
         if command == "join" or command == "create":
             response = handle_join_cmd(msg)
@@ -45,6 +45,8 @@ def handle_message(msg):
             response = handle_list_cmd(msg)
         elif command == "part":
             response = handle_part_cmd(msg)
+        elif command == "privmsg":
+            response = handle_privmsg_cmd(msg)
     else:
         print("Unknown user {}".format(nick_name))
         reply = "NOT OK - User {} unknown".format(nick_name)
@@ -52,7 +54,7 @@ def handle_message(msg):
     return response
 
 
-def handle_user_cmd(msg):
+def handle_user_cmd(msg, data):
     """
     Handles the user command by adding the user to the list of users.
     User json object example:
@@ -70,6 +72,7 @@ def handle_user_cmd(msg):
 
     new_user = user.User(nick_name, msg["realname"])
     list_of_users.append(new_user)
+    data.user_nick = nick_name
     reply = "User {} joined the server.".format(nick_name)
     # TODO remove
     # print("Command - User")
@@ -164,6 +167,36 @@ def handle_part_cmd(msg):
     return build_json_response(command, nick_name, reply)
 
 
+def handle_privmsg_cmd(msg):
+    """
+    Send a user or a room a message
+    Part json object example:
+    {
+        "command" : "privmsg",
+        "nick" : "name of user",
+        "msgtarget" : "target of message",
+        "message" : "message"
+    }
+    """
+    command = msg["command"]
+    nick_name = msg["nick"]
+    target = msg["msgtarget"]
+    message = msg["message"]
+    # target is a room
+    if target[0] == "#":
+        # TODO
+        pass
+    else:
+        # build a json for target
+        map_of_conns = sel.get_map()
+        for conn in map_of_conns.values():
+            print(conn)
+            if conn.data is not None and conn.data.user_nick == target:
+                conn.data.outbound = message
+        reply = "Message sent."
+    return build_json_response(command, nick_name, reply)
+
+
 def verify_user(user_nick):
     """
     Return True if the user is already on the server
@@ -198,7 +231,9 @@ def handle_accept(data_socket):
     # TODO remove
     print("accepted connection from ", address)
     conn.setblocking(False)
-    data = types.SimpleNamespace(addr=address, inbound="", outbound="")
+    # TODO remove
+    # data = types.SimpleNamespace(addr=address, inbound="", outbound="", user_nick="")
+    data = types.SimpleNamespace(addr=address, outbound="", user_nick="")
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     sel.register(conn, events, data=data)
 
@@ -212,7 +247,14 @@ def service_connection(key, mask):
     if mask & selectors.EVENT_READ:
         recv_data = data_socket.recv(1024)
         if recv_data:
-            data.outbound = handle_message(json.loads(recv_data))
+            # TODO remove
+            # print(key)
+            # print(data_socket)
+            # map_of_conns = sel.get_map()
+            # print(map_of_conns[data_socket])
+            # print(map_of_conns[data_socket].data)
+            # print(map_of_conns[data_socket].data.outbound)
+            data.outbound = handle_message(json.loads(recv_data), data)
         # else:
         #     # TODO remove
         #     print("closing connection to ", data.addr)
