@@ -4,6 +4,7 @@ import user
 class Room:
     def __init__(self, room_name):
         self.name = room_name
+        # list of user nick names, not full user objects
         self.list_of_users = []
 
     def get_name(self):

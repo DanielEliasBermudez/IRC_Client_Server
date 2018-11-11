@@ -9,7 +9,9 @@ import types
 HOST = "127.0.0.1"
 PORT = 8080
 sel = selectors.DefaultSelector()
+# list of user objects
 list_of_users = []
+# list of room objects
 list_of_rooms = []
 
 # Test json objects
@@ -27,7 +29,7 @@ list_of_rooms = []
 # test_list_jobj = json.dumps(test_list_dict)
 
 
-def handle_message(msg, data):
+def handle_message(msg, data, socket):
     """
     Will look at the message json object and choose the correct handler based on the 
     command key.
@@ -47,6 +49,8 @@ def handle_message(msg, data):
             response = handle_part_cmd(msg)
         elif command == "privmsg":
             response = handle_privmsg_cmd(msg)
+        elif command == "quit":
+            handle_quit_cmd(msg, socket)
     else:
         print("Unknown user {}".format(nick_name))
         reply = "NOT OK - User {} unknown".format(nick_name)
@@ -215,7 +219,7 @@ def handle_privmsg_cmd(msg):
                         and conn.data.user_nick is not nick_name
                     ):
                         conn.data.outbound += build_json_response(
-                            command, conn.data.user, message
+                            command, conn.data.user_nick, message
                         )
                         print(message)
         reply = "Message sent."
@@ -224,10 +228,55 @@ def handle_privmsg_cmd(msg):
         for conn in map_of_conns.values():
             if conn.data is not None and conn.data.user_nick == target:
                 conn.data.outbound = build_json_response(
-                    command, conn.data.user, message
+                    command, conn.data.user_nick, message
                 )
         reply = "Message sent."
     return build_json_response(command, nick_name, reply)
+
+
+def handle_quit_cmd(msg, sock):
+    """
+    Close a client connection to the server.
+    Removes user from list of users, removes them from rooms, and
+    sends a message to the server
+    Quit json object example:
+    {
+        "command" : "quit",
+        "nick" : "name of user",
+        "message" : "message"
+    }
+    """
+    command = msg["command"]
+    nick_name = msg["nick"]
+    message = msg["message"]
+    map_of_conns = sel.get_map()
+
+    # remove user from rooms
+    for room in list_of_rooms:
+        room_user_list = room.get_list_of_users()
+        for user in room_user_list:
+            if nick_name == user:
+                quit_msg = "user {} removed from room {}".format(
+                    nick_name, room.get_name()
+                )
+                print(quit_msg)
+                room.delete_user(user)
+
+    for user in list_of_users:
+        if nick_name == user.get_nick():
+            print("user removed")
+            list_of_users.remove(user)
+
+    user_left_msg = "User {} left the server".format(nick_name)
+    for conn in map_of_conns.values():
+        if conn.data is not None and conn.data.user_nick is not nick_name:
+            conn.data.outbound = build_json_response(
+                command, conn.data.user_nick, user_left_msg
+            )
+
+    print("closing connection")
+    sel.unregister(sock)
+    sock.close()
 
 
 def verify_user(user_nick):
@@ -287,7 +336,7 @@ def service_connection(key, mask):
             # print(map_of_conns[data_socket])
             # print(map_of_conns[data_socket].data)
             # print(map_of_conns[data_socket].data.outbound)
-            data.outbound = handle_message(json.loads(recv_data), data)
+            data.outbound = handle_message(json.loads(recv_data), data, data_socket)
         # else:
         #     # TODO remove
         #     print("closing connection to ", data.addr)
