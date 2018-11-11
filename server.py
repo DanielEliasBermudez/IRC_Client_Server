@@ -154,8 +154,11 @@ def handle_part_cmd(msg):
     command = msg["command"]
     rooms = msg["rooms"]
     nick_name = msg["nick"]
+    message = msg["message"]
     list_of_rooms_user_left = ""
+    map_of_conns = sel.get_map()
     rooms = verify_rooms_are_in_a_list(rooms)
+
     for room in rooms:
         room_exists_value, room_obj = room_exists(room)
         if room_exists_value:
@@ -163,6 +166,20 @@ def handle_part_cmd(msg):
             room_obj.delete_user(nick_name)
             list_of_rooms_user_left += room
             list_of_rooms_user_left += ", "
+            room_occupants = room_obj.get_list_of_users()
+            for conn in map_of_conns.values():
+                if (
+                    conn.data is not None
+                    and conn.data.user_nick in room_occupants
+                    and conn.data.user_nick is not nick_name
+                ):
+                    if message is "":
+                        leave_msg = "User {} left room {}.".format(nick_name, room)
+                    else:
+                        leave_msg = "User {} - {}.".format(nick_name, message)
+                    conn.data.outbound += build_json_response(
+                        command, conn.data.user_nick, leave_msg
+                    )
     reply = "User {} left room(s) {}.".format(nick_name, list_of_rooms_user_left[:-2])
     return build_json_response(command, nick_name, reply)
 
