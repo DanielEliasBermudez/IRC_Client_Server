@@ -4,7 +4,6 @@ import socket
 import sys
 import command_parser as parser
 import json
-import select
 import threading
 import datetime
 
@@ -30,7 +29,6 @@ def buildPacket(argsDict):
 
 def establishConn():
     sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
-    # sock.settimeout(5)
     try:
         sock.connect((HOST, PORT))
         t = threading.Thread(target=recvDaemon, args=[sock])
@@ -38,11 +36,6 @@ def establishConn():
     except ConnectionRefusedError:
         print("Error: could not connect to server")
     return sock
-
-
-def printPrompt():
-    sys.stdout.write("> ")
-    sys.stdout.flush()
 
 
 def recvDaemon(socket):
@@ -63,6 +56,11 @@ def recvDaemon(socket):
                 "\n[{}:{}:{}] - {}".format(now.hour, now.minute, now.second, response)
             )
             e.set()
+
+
+def printPrompt():
+    sys.stdout.write("\n> ")
+    sys.stdout.flush()
 
 
 sock = establishConn()
@@ -86,17 +84,3 @@ while True:
             exit()
     else:
         printPrompt()
-        # try:
-        #    message = sock.recv(4096)
-        # except socket.timeout:
-        #    print("Error: connection to server timed out")
-        #    exit()
-        # responseDict = json.loads(message)
-        # response = responseDict.get("response")
-        # if not response:
-        #    print("Error: received empty response from server")
-        # else:
-        #    print(response)
-        # sock.close()
-        # if args.command == "quit":
-        #    exit()
