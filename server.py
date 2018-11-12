@@ -51,6 +51,8 @@ def handle_message(msg, data, socket):
             response = handle_privmsg_cmd(msg)
         elif command == "quit":
             handle_quit_cmd(msg, socket)
+        elif command == "names":
+            response = handle_names_cmd(msg)
     else:
         print("Unknown user {}".format(nick_name))
         reply = "NOT OK - User {} unknown".format(nick_name)
@@ -281,6 +283,33 @@ def handle_quit_cmd(msg, sock):
     print("closing connection")
     sel.unregister(sock)
     sock.close()
+
+def handle_names_cmd(msg):
+    command = msg["command"]
+    rooms = msg["rooms"]
+    nick_name = msg["nick"]
+    room_dict = {}
+    reply = ""
+    if rooms == None:
+        rooms = [room.get_name() for room in list_of_rooms]
+        print("listing users on server")
+    else:
+        rooms = verify_rooms_are_in_a_list(rooms)
+        print("listing users in rooms: {}".format(rooms))
+
+    for room in rooms:
+        room_exists_value, room_obj = room_exists(room)
+        if room_exists_value:
+            room_dict[room] = room_obj.get_list_of_users()
+
+    reply += "\nUsers:"
+    for room in room_dict:
+        reply += "\n{}: ".format(room)
+        for name in room_dict[room]:
+            reply += "{}, ".format(name)
+        reply = reply.rstrip(", ")
+
+    return build_json_response(command, nick_name, reply)
 
 
 def verify_user(user_nick):
