@@ -99,6 +99,7 @@ def handle_join_cmd(msg):
     command = msg["command"]
     rooms = msg["room"]
     nick_name = msg["nick"]
+    join_msg = ""
     # in the case of 1 room passed in, rooms needs to be converted from a string -> list
     rooms = verify_rooms_are_in_a_list(rooms)
     for r in rooms:
@@ -107,16 +108,19 @@ def handle_join_cmd(msg):
             # join room
             room_obj.add_user(nick_name)
             print("Joined existing room")
-            reply = "User {} joined room {}.".format(nick_name, r)
-            return build_json_response(command, nick_name, reply)
+            reply = "User {} joined room {}.\n".format(nick_name, r)
+            join_msg += reply
         else:
             # create room
             new_room = room.Room(r)
             new_room.add_user(nick_name)
             list_of_rooms.append(new_room)
             print("Created a room")
-            reply = "Room {} created.\nUser {} joined room {}.".format(r, nick_name, r)
-            return build_json_response(command, nick_name, reply)
+            reply = "Room {} created.\nUser {} joined room {}.\n".format(
+                r, nick_name, r
+            )
+            join_msg += reply
+    return build_json_response(command, nick_name, join_msg)
 
 
 def room_exists(room_name):
