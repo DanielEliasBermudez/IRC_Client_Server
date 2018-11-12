@@ -6,6 +6,7 @@ import command_parser as parser
 import json
 import select
 import threading
+import datetime
 
 HOST = "127.0.0.1"
 PORT = 8080
@@ -29,7 +30,7 @@ def buildPacket(argsDict):
 
 def establishConn():
     sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
-    #sock.settimeout(5)
+    # sock.settimeout(5)
     try:
         sock.connect((HOST, PORT))
         t = threading.Thread(target=recvDaemon, args=[sock])
@@ -38,42 +39,56 @@ def establishConn():
         print("Error: could not connect to server")
     return sock
 
+
+def printPrompt():
+    sys.stdout.write("> ")
+    sys.stdout.flush()
+
+
 def recvDaemon(socket):
     while True:
         e.clear()
+        printPrompt()
         data = socket.recv(4096)
         responseDict = json.loads(data)
         response = responseDict.get("response")
         if not response:
             print("Error: received empty response from server")
+            e.set()
         else:
-            print(response)
+            now = datetime.datetime.now()
+            print(
+                "\n[{}:{}:{}] - {}".format(now.hour, now.minute, now.second, response)
+            )
             e.set()
 
 
 sock = establishConn()
 while True:
-    argv = input("> ")
+    argv = sys.stdin.readline()
     argv = argv.split()
     args = parser.parseCommand(argv)
     if args:
         jsonString = buildPacket(vars(args))
         if not jsonString:
             print("Error: no username set. Please run 'user' command first")
+            printPrompt()
             continue
         sock.sendall(jsonString.encode("utf-8"))
         e.wait()
-        #try:
+    else:
+        printPrompt()
+        # try:
         #    message = sock.recv(4096)
-        #except socket.timeout:
+        # except socket.timeout:
         #    print("Error: connection to server timed out")
         #    exit()
-        #responseDict = json.loads(message)
-        #response = responseDict.get("response")
-        #if not response:
+        # responseDict = json.loads(message)
+        # response = responseDict.get("response")
+        # if not response:
         #    print("Error: received empty response from server")
-        #else:
+        # else:
         #    print(response)
         # sock.close()
-        #if args.command == "quit":
+        # if args.command == "quit":
         #    exit()
