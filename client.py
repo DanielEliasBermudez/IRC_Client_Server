@@ -50,6 +50,8 @@ def recvDaemon(socket):
         e.clear()
         printPrompt()
         data = socket.recv(4096)
+        if not data:
+            return
         responseDict = json.loads(data)
         response = responseDict.get("response")
         if not response:
@@ -70,13 +72,18 @@ while True:
     args = parser.parseCommand(argv)
     if args:
         jsonString = buildPacket(vars(args))
-        print("HERE'S THE JSON: {}", jsonString)
         if not jsonString:
             print("Error: no username set. Please run 'user' command first")
             printPrompt()
             continue
         sock.sendall(jsonString.encode("utf-8"))
-        e.wait()
+        if args.command == "quit":
+            exit()
+        try:
+            e.wait(5)
+        except:
+            print("Error: response from server timed out")
+            exit()
     else:
         printPrompt()
         # try:
