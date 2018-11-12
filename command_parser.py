@@ -46,9 +46,11 @@ def parseUser(userParser, argv):
 def parseJoin(joinParser, argv):
     joinParser.add_argument("room", type=roomType)
     try:
-        return joinParser.parse_args(argv)
+        args = joinParser.parse_args(argv)
     except:
         return None
+    args.room = args.room.split(",")
+    return args
 
 
 def parseList(listParser, argv):

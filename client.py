@@ -70,6 +70,7 @@ while True:
     args = parser.parseCommand(argv)
     if args:
         jsonString = buildPacket(vars(args))
+        print("HERE'S THE JSON: {}", jsonString)
         if not jsonString:
             print("Error: no username set. Please run 'user' command first")
             printPrompt()
