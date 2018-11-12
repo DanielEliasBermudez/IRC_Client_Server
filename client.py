@@ -53,7 +53,7 @@ def recvDaemon(socket):
         else:
             now = datetime.datetime.now()
             print(
-                "\n[{}:{}:{}] - {}".format(now.hour, now.minute, now.second, response)
+                "\n[{}:{}:{}] - {}".format(now.hour, now.minute, now.second, str(response).rstrip())
             )
             e.set()
 
