@@ -51,6 +51,8 @@ def handle_message(msg, data, socket):
             response = handle_privmsg_cmd(msg)
         elif command == "quit":
             handle_quit_cmd(msg, socket)
+        elif command == "names":
+            response = handle_names_cmd(msg)
     else:
         print("Unknown user {}".format(nick_name))
         reply = "NOT OK - User {} unknown".format(nick_name)
@@ -99,6 +101,7 @@ def handle_join_cmd(msg):
     command = msg["command"]
     rooms = msg["room"]
     nick_name = msg["nick"]
+    join_msg = ""
     # in the case of 1 room passed in, rooms needs to be converted from a string -> list
     rooms = verify_rooms_are_in_a_list(rooms)
     for r in rooms:
@@ -107,16 +110,19 @@ def handle_join_cmd(msg):
             # join room
             room_obj.add_user(nick_name)
             print("Joined existing room")
-            reply = "User {} joined room {}.".format(nick_name, r)
-            return build_json_response(command, nick_name, reply)
+            reply = "User {} joined room {}.\n".format(nick_name, r)
+            join_msg += reply
         else:
             # create room
             new_room = room.Room(r)
             new_room.add_user(nick_name)
             list_of_rooms.append(new_room)
             print("Created a room")
-            reply = "Room {} created.\nUser {} joined room {}.".format(r, nick_name, r)
-            return build_json_response(command, nick_name, reply)
+            reply = "Room {} created.\nUser {} joined room {}.\n".format(
+                r, nick_name, r
+            )
+            join_msg += reply
+    return build_json_response(command, nick_name, join_msg)
 
 
 def room_exists(room_name):
@@ -277,6 +283,33 @@ def handle_quit_cmd(msg, sock):
     print("closing connection")
     sel.unregister(sock)
     sock.close()
+
+def handle_names_cmd(msg):
+    command = msg["command"]
+    rooms = msg["rooms"]
+    nick_name = msg["nick"]
+    room_dict = {}
+    reply = ""
+    if rooms == None:
+        rooms = [room.get_name() for room in list_of_rooms]
+        print("listing users on server")
+    else:
+        rooms = verify_rooms_are_in_a_list(rooms)
+        print("listing users in rooms: {}".format(rooms))
+
+    for room in rooms:
+        room_exists_value, room_obj = room_exists(room)
+        if room_exists_value:
+            room_dict[room] = room_obj.get_list_of_users()
+
+    reply += "\nUsers:"
+    for room in room_dict:
+        reply += "\n{}: ".format(room)
+        for name in room_dict[room]:
+            reply += "{}, ".format(name)
+        reply = reply.rstrip(", ")
+
+    return build_json_response(command, nick_name, reply)
 
 
 def verify_user(user_nick):
