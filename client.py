@@ -42,7 +42,7 @@ def recvDaemon(socket):
     while True:
         e.clear()
         data = socket.recv(4096)
-        responseDict = json.loads(data)
+        responseDict = json.loads(data.decode("utf-8"))
         response = responseDict.get("response")
         if not response:
             print("Error: received empty response from server")

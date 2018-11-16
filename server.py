@@ -336,7 +336,7 @@ def service_connection(key, mask):
             # print(map_of_conns[data_socket])
             # print(map_of_conns[data_socket].data)
             # print(map_of_conns[data_socket].data.outbound)
-            data.outbound = handle_message(json.loads(recv_data), data, data_socket)
+            data.outbound = handle_message(json.loads(recv_data.decode("utf-8")), data, data_socket)
         # else:
         #     # TODO remove
         #     print("closing connection to ", data.addr)
