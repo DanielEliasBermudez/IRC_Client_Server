@@ -388,7 +388,13 @@ def service_connection(key, mask):
     if mask & selectors.EVENT_WRITE:
         if data.outbound:
             print(data.outbound)
-            data_socket.send(data.outbound.encode("utf-8"))
+            try:
+                data_socket.send(data.outbound.encode("utf-8"))
+            except BrokenPipeError:
+                print("Client failure detectied")
+                nick = json.loads(data.outbound)["nick"]
+                msg = {"command": "quit", "nick": nick, "message": "terminating broken client"}
+                handle_quit_cmd(msg, data_socket)
             data.outbound = ""
 
 
