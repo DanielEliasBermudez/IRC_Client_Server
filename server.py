@@ -287,13 +287,13 @@ def handle_quit_cmd(msg, sock):
 def handle_names_cmd(msg):
     command = msg["command"]
     rooms = msg["rooms"]
-    users = set([user.get_nick() for user in list_of_users])
-    print("users: ", users)
+    users = None 
     nick_name = msg["nick"]
     room_dict = {}
     reply = ""
     if rooms == None:
         rooms = [room.get_name() for room in list_of_rooms]
+        users = set([user.get_nick() for user in list_of_users])
         print("listing users on server")
     else:
         rooms = verify_rooms_are_in_a_list(rooms)
@@ -309,14 +309,15 @@ def handle_names_cmd(msg):
         reply += "\n{}: ".format(room)
         for name in room_dict[room]:
             reply += "{}, ".format(name)
-            users.remove(name)
+            if users:
+                users.remove(name)
         reply = reply.rstrip(", ")
     
-    if len(users) > 0:
+    if users:
         reply += "\nUsers not in any room: "
-    for user in users:
-        reply += "{}, ".format(user)
-    reply = reply.rstrip(", ")
+        for user in users:
+            reply += "{}, ".format(user)
+        reply = reply.rstrip(", ")
 
     return build_json_response(command, nick_name, reply)
 
