@@ -6,6 +6,7 @@ import command_parser as parser
 import json
 import threading
 import datetime
+import time
 
 HOST = "127.0.0.1"
 PORT = 8080
@@ -31,11 +32,13 @@ def establishConn():
     sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
     try:
         sock.connect((HOST, PORT))
-        t = threading.Thread(target=recvDaemon, args=[sock])
-        t.start()
+        receiver = threading.Thread(target=recvDaemon, args=[sock])
+        client = threading.Thread(target=clientProcess, args=[receiver])
+        receiver.start()
+        client.start()
     except ConnectionRefusedError:
         print("Error: could not connect to server")
-    return sock
+    return sock, receiver, client
 
 
 def recvDaemon(socket):
@@ -57,30 +60,37 @@ def recvDaemon(socket):
             )
             e.set()
 
+def clientProcess(receiver):
+    while True:
+        if not receiver.is_alive():
+            return
+        argv = sys.stdin.readline()
+        argv = argv.split()
+        args = parser.parseCommand(argv)
+        if args:
+            jsonString = buildPacket(vars(args))
+            if not jsonString:
+                print("Error: no username set. Please run 'user' command first")
+                printPrompt()
+                continue
+            sock.sendall(jsonString.encode("utf-8"))
+            if args.command == "quit":
+                return
+            try:
+                e.wait(5)
+            except:
+                print("Error: response from server timed out")
+                return
+        else:
+            printPrompt()
 
 def printPrompt():
     sys.stdout.write("\n> ")
     sys.stdout.flush()
 
-
-sock = establishConn()
+sock, recvDaemon, client = establishConn()
 while True:
-    argv = sys.stdin.readline()
-    argv = argv.split()
-    args = parser.parseCommand(argv)
-    if args:
-        jsonString = buildPacket(vars(args))
-        if not jsonString:
-            print("Error: no username set. Please run 'user' command first")
-            printPrompt()
-            continue
-        sock.sendall(jsonString.encode("utf-8"))
-        if args.command == "quit":
-            exit()
-        try:
-            e.wait(5)
-        except:
-            print("Error: response from server timed out")
-            exit()
-    else:
-        printPrompt()
+    time.sleep(5)
+    if not recvDaemon.is_alive() or not client.is_alive():
+        print("Error: connection to server was lost")
+        sys.exit()
