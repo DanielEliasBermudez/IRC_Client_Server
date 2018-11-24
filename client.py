@@ -6,7 +6,6 @@ import command_parser as parser
 import json
 import threading
 import datetime
-import time
 
 HOST = "127.0.0.1"
 PORT = 8080
@@ -90,7 +89,8 @@ def printPrompt():
 
 sock, recvDaemon, client = establishConn()
 while True:
-    time.sleep(5)
-    if not recvDaemon.is_alive() or not client.is_alive():
+    if not recvDaemon.is_alive():
+        if not client.is_alive():
+            sys.exit()
         print("Error: connection to server was lost")
         sys.exit()
