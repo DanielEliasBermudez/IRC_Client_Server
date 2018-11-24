@@ -309,7 +309,6 @@ def handle_names_cmd(msg):
         reply += "\n{}: ".format(room)
         for name in room_dict[room]:
             reply += "{}, ".format(name)
-            print("removing name from users list: {}".format(name))
             users.remove(name)
         reply = reply.rstrip(", ")
     
