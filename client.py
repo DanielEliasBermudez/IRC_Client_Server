@@ -44,7 +44,6 @@ def establishConn():
 def recvDaemon(socket):
     while True:
         e.clear()
-        #printPrompt()
         data = socket.recv(4096)
         if not data:
             return
@@ -61,7 +60,6 @@ def recvDaemon(socket):
                 "\n[{}:{}:{}] - {}".format(now.hour, now.minute, now.second, str(response).rstrip())
             )
             e.set()
-            #e.clear()
             printPrompt()
 
 def clientProcess(receiver):
