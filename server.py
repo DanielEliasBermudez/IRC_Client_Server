@@ -13,6 +13,7 @@ sel = selectors.DefaultSelector()
 list_of_users = []
 # list of room objects
 list_of_rooms = []
+list_of_connections = []
 
 # Test json objects
 # test_user_dict = {"command": "user", "nick": "Alice", "realname": "Alice A"}
@@ -282,12 +283,18 @@ def handle_quit_cmd(msg, sock):
 
     print("closing connection")
     sel.unregister(sock)
+    for data in list_of_connections:
+        if data.user_nick == nick_name:
+            print("removed CONNECTION")
+            list_of_connections.remove(data)
+            break
     sock.close()
+
 
 def handle_names_cmd(msg):
     command = msg["command"]
     rooms = msg["rooms"]
-    users = None 
+    users = None
     nick_name = msg["nick"]
     room_dict = {}
     reply = ""
@@ -312,7 +319,7 @@ def handle_names_cmd(msg):
             if users:
                 users.remove(name)
         reply = reply.rstrip(", ")
-    
+
     if users:
         reply += "\nUsers not in any room: "
         for user in users:
@@ -360,6 +367,7 @@ def handle_accept(data_socket):
     # data = types.SimpleNamespace(addr=address, inbound="", outbound="", user_nick="")
     data = types.SimpleNamespace(addr=address, outbound="", user_nick="")
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
+    list_of_connections.append(data)
     sel.register(conn, events, data=data)
 
 
@@ -370,16 +378,28 @@ def service_connection(key, mask):
     data_socket = key.fileobj
     data = key.data
     if mask & selectors.EVENT_READ:
-        recv_data = data_socket.recv(1024)
-        if recv_data:
-            # TODO remove
-            # print(key)
-            # print(data_socket)
-            # map_of_conns = sel.get_map()
-            # print(map_of_conns[data_socket])
-            # print(map_of_conns[data_socket].data)
-            # print(map_of_conns[data_socket].data.outbound)
-            data.outbound = handle_message(json.loads(recv_data.decode("utf-8")), data, data_socket)
+        try:
+            recv_data = data_socket.recv(1024)
+            if recv_data:
+                # TODO remove
+                # print(key)
+                # print(data_socket)
+                # map_of_conns = sel.get_map()
+                # print(map_of_conns[data_socket])
+                # print(map_of_conns[data_socket].data)
+                # print(map_of_conns[data_socket].data.outbound)
+                data.outbound = handle_message(
+                    json.loads(recv_data.decode("utf-8")), data, data_socket
+                )
+        except ConnectionResetError:
+            print("Connection error detected")
+            nick = data.user_nick
+            msg = {
+                "command": "quit",
+                "nick": nick,
+                "message": "Connection to peer terminated unexpectedly",
+            }
+            handle_quit_cmd(msg, data_socket)
         # else:
         #     # TODO remove
         #     print("closing connection to ", data.addr)
@@ -391,11 +411,21 @@ def service_connection(key, mask):
             try:
                 data_socket.send(data.outbound.encode("utf-8"))
             except BrokenPipeError:
-                print("Client failure detectied")
+                print("Client failure detected")
                 nick = json.loads(data.outbound)["nick"]
-                msg = {"command": "quit", "nick": nick, "message": "terminating broken client"}
+                msg = {
+                    "command": "quit",
+                    "nick": nick,
+                    "message": "terminating broken client",
+                }
                 handle_quit_cmd(msg, data_socket)
             data.outbound = ""
+
+
+def send_ping():
+    check_connection_msg = build_json_response("ping", "", "ping")
+    for data in list_of_connections:
+        data.outbound = check_connection_msg
 
 
 # This will create listening connection TCP socket on localhost:8080
@@ -412,8 +442,12 @@ def main():
     listen_socket.setblocking(False)
     # only register the listening socket for reading
     sel.register(listen_socket, selectors.EVENT_READ, data=None)
-
+    loop_counter = 1
     while True:
+        loop_counter = (loop_counter + 1) % 1000000
+        if loop_counter == 0:
+            print(loop_counter)
+            send_ping()
         events = sel.select(timeout=0)
         for key, mask in events:
             # if key data is empty, then a connection is trying to be established.
