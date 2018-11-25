@@ -37,13 +37,14 @@ def establishConn():
         client.start()
     except ConnectionRefusedError:
         print("Error: could not connect to server")
+        exit()
     return sock, receiver, client
 
 
 def recvDaemon(socket):
     while True:
         e.clear()
-        printPrompt()
+        #printPrompt()
         data = socket.recv(4096)
         if not data:
             return
@@ -52,12 +53,16 @@ def recvDaemon(socket):
         if not response:
             print("Error: received empty response from server")
             e.set()
+        elif response == "ping":
+            continue
         else:
             now = datetime.datetime.now()
             print(
                 "\n[{}:{}:{}] - {}".format(now.hour, now.minute, now.second, str(response).rstrip())
             )
             e.set()
+            #e.clear()
+            printPrompt()
 
 def clientProcess(receiver):
     while True:
@@ -82,12 +87,14 @@ def clientProcess(receiver):
                 return
         else:
             printPrompt()
+            continue
 
 def printPrompt():
     sys.stdout.write("\n> ")
     sys.stdout.flush()
 
 sock, recvDaemon, client = establishConn()
+printPrompt()
 while True:
     if not recvDaemon.is_alive():
         if not client.is_alive():
