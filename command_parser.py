@@ -99,6 +99,7 @@ def parsePrivmsg(privmsgParser, argv):
     except:
         return None
     args.message = " ".join(args.message)
+    args.msgtarget = args.msgtarget.split(",")
     return args
 
 
