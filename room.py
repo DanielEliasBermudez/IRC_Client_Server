@@ -11,7 +11,10 @@ class Room:
         return self.name
 
     def add_user(self, new_user):
+        if new_user in self.list_of_users:
+            return False
         self.list_of_users.append(new_user)
+        return True
 
     def delete_user(self, user):
         self.list_of_users.remove(user)
