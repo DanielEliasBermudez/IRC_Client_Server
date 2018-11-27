@@ -92,9 +92,13 @@ def handle_join_cmd(msg):
         room_exists_value, room_obj = room_exists(r)
         if room_exists_value:
             # join room
-            room_obj.add_user(nick_name)
-            print("Joined existing room")
-            reply = "User {} joined room {}.\n".format(nick_name, r)
+            added = room_obj.add_user(nick_name)
+            if added:
+                print("Joined existing room")
+                reply = "User {} joined room {}.\n".format(nick_name, r)
+            else:
+                print("Already joined that room")
+                reply = "User {} already joined room {}.\n".format(nick_name, r)
             join_msg += reply
         else:
             # create room
@@ -197,6 +201,7 @@ def handle_privmsg_cmd(msg):
     # target is a list of rooms
     if target[0] == "#":
         rooms = verify_rooms_are_in_a_list(target)
+        print(rooms)
         for room in rooms:
             room_exists_value, room_obj = room_exists(room)
             if room_exists_value:
@@ -412,7 +417,7 @@ def main():
     while True:
         loop_counter = (loop_counter + 1) % 1000000
         if loop_counter == 0:
-            print(loop_counter)
+            # print(loop_counter)
             send_ping()
         events = sel.select(timeout=0)
         for key, mask in events:
