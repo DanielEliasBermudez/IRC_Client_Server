@@ -13,21 +13,8 @@ sel = selectors.DefaultSelector()
 list_of_users = []
 # list of room objects
 list_of_rooms = []
+# list of data connections
 list_of_connections = []
-
-# Test json objects
-# test_user_dict = {"command": "user", "nick": "Alice", "realname": "Alice A"}
-# test_user_jobj = json.dumps(test_user_dict)
-# test_join_dict = {"command": "join", "nick": "Alice", "room": "room1"}
-# test_join_jobj = json.dumps(test_join_dict)
-
-# test_userb_dict = {"command": "user", "nick": "Boris", "realname": "Boris P"}
-# test_userb_jobj = json.dumps(test_userb_dict)
-# test_joinb_dict = {"command": "join", "nick": "Boris", "room": "room1"}
-# test_joinb_jobj = json.dumps(test_joinb_dict)
-
-# test_list_dict = {"command": "list", "nick": "Alice"}
-# test_list_jobj = json.dumps(test_list_dict)
 
 
 def handle_message(msg, data, socket):
@@ -81,10 +68,6 @@ def handle_user_cmd(msg, data):
     list_of_users.append(new_user)
     data.user_nick = nick_name
     reply = "User {} joined the server.".format(nick_name)
-    # TODO remove
-    # print("Command - User")
-    # print("Nick: {}".format(msg["nick"]))
-    # print("Real Name: {}".format(msg["realname"]))
     print("User added")
     return build_json_response(command, nick_name, reply)
 
@@ -161,7 +144,6 @@ def handle_part_cmd(msg):
         "nick" : "name of user",
     }
     """
-    # TODO update to include message sending
     command = msg["command"]
     rooms = msg["rooms"]
     nick_name = msg["nick"]
@@ -360,11 +342,8 @@ def handle_accept(data_socket):
     Handle accepting a connection to the server
     """
     conn, address = data_socket.accept()
-    # TODO remove
     print("accepted connection from ", address)
     conn.setblocking(False)
-    # TODO remove
-    # data = types.SimpleNamespace(addr=address, inbound="", outbound="", user_nick="")
     data = types.SimpleNamespace(addr=address, outbound="", user_nick="")
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     list_of_connections.append(data)
@@ -381,13 +360,6 @@ def service_connection(key, mask):
         try:
             recv_data = data_socket.recv(1024)
             if recv_data:
-                # TODO remove
-                # print(key)
-                # print(data_socket)
-                # map_of_conns = sel.get_map()
-                # print(map_of_conns[data_socket])
-                # print(map_of_conns[data_socket].data)
-                # print(map_of_conns[data_socket].data.outbound)
                 data.outbound = handle_message(
                     json.loads(recv_data.decode("utf-8")), data, data_socket
                 )
@@ -400,11 +372,6 @@ def service_connection(key, mask):
                 "message": "Connection to peer terminated unexpectedly",
             }
             handle_quit_cmd(msg, data_socket)
-        # else:
-        #     # TODO remove
-        #     print("closing connection to ", data.addr)
-        #     sel.unregister(data_socket)
-        #     data_socket.close()
     if mask & selectors.EVENT_WRITE:
         if data.outbound:
             print(data.outbound)
@@ -437,7 +404,6 @@ def main():
     listen_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
     listen_socket.bind((HOST, PORT))
     listen_socket.listen()
-    # TODO remove
     print("listening on", (HOST, PORT))
     listen_socket.setblocking(False)
     # only register the listening socket for reading
@@ -455,36 +421,6 @@ def main():
                 handle_accept(key.fileobj)
             else:
                 service_connection(key, mask)
-
-        # with socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM) as sock:
-        #     sock.bind((HOST, PORT))
-        #     sock.listen()
-        #     conn, address = sock.accept()
-        #     with conn:
-        #         print("Connected to {}".format(address))
-        #         data = conn.recv(1024)
-        #         print(data.decode("utf-8"))
-        #         # parse the json here - this should be the json that came thru the data. for
-        #         # now I am just using a test json object
-
-        #         # test user command
-        #         msg_json = json.loads(test_user_jobj)
-        #         response = handle_message(msg_json)
-        #         # test create command
-        #         msg_json = json.loads(test_join_jobj)
-        #         response = handle_message(msg_json)
-        #         # test 2nd user
-        #         msg_json = json.loads(test_userb_jobj)
-        #         response = handle_message(msg_json)
-        #         # test join command
-        #         msg_json = json.loads(test_joinb_jobj)
-        #         response = handle_message(msg_json)
-        #         # test list command
-        #         msg_json = json.loads(test_list_jobj)
-        #         response = handle_message(msg_json)
-
-        #         conn.send(response.encode("utf-8"))
-        #         # conn.send(b"You made a connection. yay!")
 
 
 if __name__ == "__main__":
