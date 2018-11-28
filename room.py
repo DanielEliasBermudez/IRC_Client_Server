@@ -17,7 +17,10 @@ class Room:
         return True
 
     def delete_user(self, user):
-        self.list_of_users.remove(user)
+        if user in self.list_of_users:
+            self.list_of_users.remove(user)
+            return True
+        return False
 
     def list_users(self):
         for user in self.list_of_users:
