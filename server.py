@@ -284,11 +284,13 @@ def handle_names_cmd(msg):
     command = msg["command"]
     rooms = msg["rooms"]
     usersInARoom = set()
+    listAll = False
     nick_name = msg["nick"]
     room_dict = {}
     reply = ""
     if rooms == None:
         rooms = [room.get_name() for room in list_of_rooms]
+        listAll = True
         print("listing users on server")
     else:
         rooms = verify_rooms_are_in_a_list(rooms)
@@ -307,10 +309,10 @@ def handle_names_cmd(msg):
             usersInARoom.add(name)
         reply = reply.rstrip(", ")
 
-    if len(usersInARoom) < len(list_of_users):
+    if len(usersInARoom) < len(list_of_users) and listAll:
         reply += "\nUsers not in any room: "
         for user in list_of_users:
-            if user not in usersInARoom:
+            if user.get_nick() not in usersInARoom:
                 reply += "{}, ".format(user.get_nick())
         reply = reply.rstrip(", ")
 
