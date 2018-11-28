@@ -70,6 +70,7 @@ def parsePart(partParser, argv):
     except:
         return None
     args.message = " ".join(args.message)
+    args.rooms = args.rooms.split(",")
     return args
 
 
