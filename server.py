@@ -218,7 +218,10 @@ def handle_privmsg_cmd(msg):
                     room_exists_value, room_obj = room_exists(room)
                     if room_exists_value:
                         room_occupants = room_obj.get_list_of_users()
-                        if conn.data.user_nick in room_occupants:
+                        if (
+                            conn.data.user_nick in room_occupants
+                            and nick_name in room_occupants
+                        ):
                             message_to_send += "{}\n".format(message)
             if message_to_send:
                 conn.data.outbound += build_json_response(
