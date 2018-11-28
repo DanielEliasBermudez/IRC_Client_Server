@@ -211,10 +211,6 @@ def handle_privmsg_cmd(msg):
     if target[0].startswith("#"):
         rooms = verify_rooms_are_in_a_list(target)
         print(rooms)
-        # for room in rooms:
-        #     room_exists_value, room_obj = room_exists(room)
-        #     if room_exists_value:
-        #         room_occupants = room_obj.get_list_of_users()
         for conn in map_of_conns.values():
             message_to_send = ""
             if conn.data is not None and conn.data.user_nick is not nick_name:
@@ -230,21 +226,6 @@ def handle_privmsg_cmd(msg):
                 )
                 print(message_to_send)
         reply = "Message sent."
-        # for room in rooms:
-        #     room_exists_value, room_obj = room_exists(room)
-        #     if room_exists_value:
-        #         room_occupants = room_obj.get_list_of_users()
-        #         for conn in map_of_conns.values():
-        #             if (
-        #                 conn.data is not None
-        #                 and conn.data.user_nick in room_occupants
-        #                 and conn.data.user_nick is not nick_name
-        #             ):
-        #                 conn.data.outbound += build_json_response(
-        #                     command, conn.data.user_nick, message
-        #                 )
-        #                 print(message)
-        # reply = "Message sent."
     else:
         # build a json for target
         for name in target:
