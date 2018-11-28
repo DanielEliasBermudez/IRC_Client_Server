@@ -199,7 +199,8 @@ def handle_privmsg_cmd(msg):
     map_of_conns = sel.get_map()
     reply = ""
     # target is a list of rooms
-    if target[0] == "#":
+
+    if target[0].startswith('#'):
         rooms = verify_rooms_are_in_a_list(target)
         print(rooms)
         for room in rooms:
@@ -219,11 +220,12 @@ def handle_privmsg_cmd(msg):
         reply = "Message sent."
     else:
         # build a json for target
-        for conn in map_of_conns.values():
-            if conn.data is not None and conn.data.user_nick == target:
-                conn.data.outbound = build_json_response(
-                    command, conn.data.user_nick, message
-                )
+        for name in target:
+            for conn in map_of_conns.values():
+                if conn.data is not None and conn.data.user_nick == name:
+                    conn.data.outbound = build_json_response(
+                        command, conn.data.user_nick, message
+                    )
         reply = "Message sent."
     return build_json_response(command, nick_name, reply)
 
@@ -309,7 +311,7 @@ def handle_names_cmd(msg):
         reply += "\nUsers not in any room: "
         for user in list_of_users:
             if user not in usersInARoom:
-                reply += "{}, ".format(user)
+                reply += "{}, ".format(user.get_nick())
         reply = reply.rstrip(", ")
 
     return build_json_response(command, nick_name, reply)
