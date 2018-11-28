@@ -49,7 +49,7 @@ def recvDaemon(socket):
             return
         responseDict = json.loads(data.decode("utf-8"))
         response = responseDict.get("response")
-        if not response:
+        if not response and type(response) != list:
             print("Error: received empty response from server")
             e.set()
         elif response == "ping":
