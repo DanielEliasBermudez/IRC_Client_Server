@@ -183,7 +183,9 @@ def handle_part_cmd(msg):
     if len(list_of_rooms_user_left) == 0:
         reply = "User {} left 0 rooms.".format(nick_name)
     else:
-        reply = "User {} left room(s) {}.".format(nick_name, list_of_rooms_user_left[:-2])
+        reply = "User {} left room(s) {}.".format(
+            nick_name, list_of_rooms_user_left[:-2]
+        )
     return build_json_response(command, nick_name, reply)
 
 
@@ -268,8 +270,9 @@ def handle_quit_cmd(msg, sock):
         if nick_name == user.get_nick():
             print("user removed")
             list_of_users.remove(user)
-
     user_left_msg = "User {} left the server".format(nick_name)
+    if message:
+        user_left_msg += " - {}".format(message)
     for conn in map_of_conns.values():
         if conn.data is not None and conn.data.user_nick is not nick_name:
             conn.data.outbound = build_json_response(
