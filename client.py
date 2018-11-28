@@ -49,9 +49,15 @@ def recvDaemon(socket):
             return
         responseDict = json.loads(data.decode("utf-8"))
         response = responseDict.get("response")
-        if not response and type(response) != list:
-            print("Error: received empty response from server")
+        command = responseDict.get("command")
+        if not response:
+            if command == "list":
+                print("There are no rooms on the server")
+            else:
+                print("Error: received empty response from server")
             e.set()
+            printPrompt()
+            continue
         elif response == "ping":
             continue
         else:
