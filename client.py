@@ -10,11 +10,16 @@ import datetime
 HOST = "127.0.0.1"
 PORT = 8080
 
+# userDict is a global dictionary tracking the nick associated with this client process
 userDict = {"nick": None}
+# threading event used for concurrent handling of output to the console
 e = threading.Event()
 
 
 def buildPacket(argsDict):
+    """
+    Build a command packet and convert to JSON object to send to server
+    """
     command = argsDict.get("command")
     if userDict["nick"] == None or command == "user":
         nick = argsDict.get("nick")
@@ -28,6 +33,9 @@ def buildPacket(argsDict):
 
 
 def establishConn():
+    """
+    Establish connection to server and initiate client threads of control
+    """
     sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
     try:
         sock.connect((HOST, PORT))
@@ -42,6 +50,9 @@ def establishConn():
 
 
 def recvDaemon(socket):
+    """
+    A receiver thread that handles asynchronous messaging from the server
+    """
     while True:
         e.clear()
         data = socket.recv(4096)
@@ -69,6 +80,9 @@ def recvDaemon(socket):
             printPrompt()
 
 def clientProcess(receiver):
+    """
+    The client process provides a command line interface for the user
+    """
     while True:
         if not receiver.is_alive():
             return
