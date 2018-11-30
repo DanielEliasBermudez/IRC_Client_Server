@@ -1,3 +1,6 @@
+"""
+The Room class that holds a list of users that are in the room.
+"""
 import user
 
 

@@ -1,3 +1,8 @@
+"""
+User class that holds pertinent user information.
+"""
+
+
 class User:
     def __init__(self, nick, real_name):
         self.nick = nick

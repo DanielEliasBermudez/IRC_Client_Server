@@ -1,4 +1,14 @@
 #!usr/bin/env python3
+"""
+The core server code. It is capable of handling multiple connections from various
+clients. It uses a select library to manage the connections as they are ready to read
+and write. 
+
+The basic idea for this code came from 
+https://realpython.com/python-sockets/#handling-multiple-connections
+but was then heavily modified in order to suit our needs.
+"""
+
 import socket
 import json
 import user
